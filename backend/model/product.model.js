@@ -32,12 +32,7 @@ const productSchema = new mongoose.Schema({
     required: true,
     default: 1,
   },
-  discount: {
-    type: Number,
-    calculate: () => {
-      return ((this.mrp - this.selling_price) / this.mrp) * 100;
-    },
-  },
+  
   paymentMode: {
     type: String,
     enum: ["COD", "Online"],
@@ -53,3 +48,7 @@ const productSchema = new mongoose.Schema({
     default: Date.now,
   },
 });
+
+const Product = mongoose.model("Product", productSchema);
+
+export default Product;

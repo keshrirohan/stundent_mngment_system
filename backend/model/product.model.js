@@ -12,9 +12,14 @@ const productSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+  reviews: Number,
   mrp: {
     type: Number,
     required: true,
+  },
+  isInStock: {
+    type: Boolean,
+    default: true,
   },
   imageUrl: [
     {
@@ -22,30 +27,11 @@ const productSchema = new mongoose.Schema({
       required: true,
     },
   ],
-  status: {
-    type: String,
-    enum: ["ordered", "delivered", "cancelled", "listed", "out of stock"],
-    default: "listed",
-  },
+
   stock: {
     type: Number,
     required: true,
     default: 1,
-  },
-  
-  paymentMode: {
-    type: String,
-    enum: ["COD", "Online"],
-    default: "COD",
-  },
-  paymentStatus: {
-    type: String,
-    enum: ["Pending", "Completed", "Failed"],
-    default: "Pending",
-  },
-  orderDate: {
-    type: Date,
-    default: Date.now,
   },
 });
 

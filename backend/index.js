@@ -16,7 +16,9 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 connectDB();
-
+app.get("/", (req, res) => {
+  res.send("Backend Working");
+});
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 

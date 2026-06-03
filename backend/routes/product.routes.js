@@ -4,8 +4,7 @@ import isAdmin from "../middleware/isadmin.js";
 const router = express.Router();
 
 router.post("/add", isAdmin, async (req, res) => {
-  const { name, description, imageUrl, mrp, stock, selling_price } =
-    req.body;
+  const { name, description, imageUrl, mrp, stock, selling_price } = req.body;
   try {
     const product = await Product.create({
       name,
@@ -14,7 +13,6 @@ router.post("/add", isAdmin, async (req, res) => {
       mrp,
       stock,
       selling_price,
-    
     });
     res.status(201).json({ product, message: "Product added successfully" });
   } catch (error) {
@@ -24,21 +22,10 @@ router.post("/add", isAdmin, async (req, res) => {
   }
 });
 
-router.get("/fetch_data", async (req, res) => {
+router.get("/fetchdata", async (req, res) => {
   try {
-    const products = await Product.find();
-    res.json(
-      products.map((product) => ({
-        id: product._id,
-        name: product.name,
-        description: product.description,
-        price: product.price,
-        imageUrl: product.imageUrl,
-        mrp: product.mrp,
-        stock: product.stock,
-      })),
-      { message: "Products fetched successfully" },
-    );
+    const products = await Product.findAll();
+    res.json({ products, message: "Products fetched successfully" });
   } catch (error) {
     res
       .status(500)
@@ -73,6 +60,20 @@ router.delete("/delete_product/:id", isAdmin, async (req, res) => {
     res
       .status(500)
       .json({ message: "Failed to delete product", error: error.message });
+  }
+});
+
+router.get("/search", async (req, res) => {
+  const { query } = req.query;
+  try {
+    const products = await Product.find({
+      name: { $regex: query, $options: "i" }, // Case-insensitive search
+    });
+    res.json({ products, message: "Search completed successfully" });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Failed to search products", error: error.message });
   }
 });
 

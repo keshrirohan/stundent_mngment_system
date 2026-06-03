@@ -24,7 +24,10 @@ router.post("/add", isAdmin, async (req, res) => {
 
 router.get("/fetchdata", async (req, res) => {
   try {
-    const products = await Product.findAll();
+    const products = await Product.find();
+    if (products.length < 1) {
+      return res.status(404).json({ message: "No products found" });
+    }
     res.json({ products, message: "Products fetched successfully" });
   } catch (error) {
     res

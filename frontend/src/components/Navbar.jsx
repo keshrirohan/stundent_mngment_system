@@ -1,32 +1,19 @@
 "use client";
 import React, { useState } from "react";
 import Link from "next/link";
+import { ShoppingCart, User } from "lucide-react";
+import { useAuth } from "@/app/context/AuthContext";
 
 const Navbar = () => {
+  // const { user, logout } = useAuth();
+  // Replace with actual user state
+  const { user } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
-  const handleSearch = async (e) => {
-    // Implement search logic here
-    e.preventDefault();
-    await fetch(
-      `${process.env.Backend_URI}/products/search?query=${e.target.value}`,
-    );
-  };
 
   return (
-    <nav className="bg-gray-800 text-white">
+    <nav className="bg-gray-800 text-white fixed top-0 left-0 right-0 z-50">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-        <div className="text-lg font-bold">MyApp</div>
-
-        {/* Search - hidden on very small screens */}
-        <div className="relative hidden sm:block sm:w-1/3">
-          <input
-            type="text"
-            placeholder="Search..."
-            aria-label="Search"
-            onChange={handleSearch}
-            className="w-full bg-gray-700 text-white rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
+        <div className="text-lg font-bold">Ecommerce</div>
 
         {/* Desktop links */}
         <div className="hidden md:flex space-x-4 items-center">
@@ -42,6 +29,37 @@ const Navbar = () => {
           >
             Products
           </Link>
+          {user ? (
+            <div className="flex items-center space-x-2">
+              <Link
+                href="/cart"
+                className="px-3 py-2 hover:bg-gray-700 rounded"
+              >
+                <ShoppingCart />
+              </Link>
+              <Link
+                href="/profile"
+                className="px-3 py-2 hover:bg-gray-700 rounded"
+              >
+                <User />
+              </Link>
+            </div>
+          ) : (
+            <div className="flex items-center space-x-2">
+              <Link
+                href="/login"
+                className="px-3 py-2 hover:bg-gray-700 rounded"
+              >
+                Login
+              </Link>
+              <Link
+                href="/register"
+                className="px-3 py-2 hover:bg-gray-700 rounded"
+              >
+                Register
+              </Link>
+            </div>
+          )}
         </div>
 
         {/* Mobile menu button */}
@@ -59,8 +77,8 @@ const Navbar = () => {
 
       {/* Mobile collapsible menu */}
       {menuOpen && (
-        <div className="md:hidden bg-gray-800 border-t border-gray-700">
-          <div className="container mx-auto px-4 py-3 flex flex-col space-y-1">
+        <div className="md:hidden bg-gray-800 border-t border-gray-700 animate-fade-in">
+          <div className="container mx-auto px-4 py-3 flex text-center flex-col space-y-1">
             <Link href="/" className="px-3 py-2 hover:bg-gray-700 rounded">
               Home
             </Link>
@@ -73,6 +91,40 @@ const Navbar = () => {
             >
               Products
             </Link>
+            {user ? (
+              <div className="border-t border-gray-700 pt-2">
+                <button className="px-3 py-2 hover:bg-gray-700 rounded">
+                  Logout
+                </button>
+                <Link
+                  href="/cart"
+                  className="px-3 py-2 hover:bg-gray-700 rounded mt-1 block  "
+                >
+                  <ShoppingCart className="w-full" />
+                </Link>
+                <Link
+                  href="/profile"
+                  className="px-3 py-2 hover:bg-gray-700 rounded mt-1 block"
+                >
+                  Profile
+                </Link>
+              </div>
+            ) : (
+              <div className="border-t border-gray-700 pt-2">
+                <Link
+                  href="/login"
+                  className="px-3 py-2 hover:bg-gray-700 rounded"
+                >
+                  Login
+                </Link>
+                <Link
+                  href="/register"
+                  className="px-3 py-2 hover:bg-gray-700 rounded mt-1 block"
+                >
+                  Register
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       )}

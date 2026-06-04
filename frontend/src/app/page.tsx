@@ -3,6 +3,7 @@ import React, { useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Image from "next/image";
 
+import { Toaster } from "react-hot-toast";
 type Product = {
   _id: string;
   imageUrl: string[];
@@ -35,7 +36,6 @@ const Home = () => {
 
   return (
     <div>
-      <Navbar />
       <h1 className="text-4xl font-bold text-center mt-10">
         Welcome to the Store
       </h1>
@@ -124,6 +124,7 @@ const Home = () => {
           </div>
         ))}
       </div>
+      <Toaster />
     </div>
   );
 };

@@ -1,13 +1,14 @@
 "use client";
-import { createContext, useState, useContext } from "react";
+
+import React, { createContext, useState, useContext } from "react";
 
 interface AuthContextType {
-  user: user | null;
-  setUser: React.Dispatch<React.SetStateAction<user | null>>;
+  user: User | null;
+  setUser: React.Dispatch<React.SetStateAction<User | null>>;
+  logout: () => Promise<void>;
 }
 
-interface user {
-  id: number;
+interface User {
   name: string;
   email: string;
   role: string;
@@ -19,16 +20,21 @@ export const AuthContext = createContext<AuthContextType | undefined>(
 );
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<user | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const logout = async () => {
+    await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URI}/auth/logout`, {
+      method: "POST",
+      credentials: "include",
+    });
+    setUser(null);
+  };
 
   return (
-    <AuthContext.Provider value={{ user, setUser }}>
+    <AuthContext.Provider value={{ user, setUser, logout }}>
       {children}
     </AuthContext.Provider>
   );
 };
-
-
 
 export const useAuth = () => {
   const context = useContext(AuthContext);

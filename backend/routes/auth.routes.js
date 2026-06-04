@@ -31,6 +31,10 @@ router.post("/register", async (req, res) => {
     );
 });
 
+router.get("/check-auth", async (req, res) => {
+  res.send("Authenticated");
+});
+
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
   const user = await User.findOne({ email });

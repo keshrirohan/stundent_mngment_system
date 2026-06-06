@@ -1,24 +1,27 @@
 import express from "express";
-
 import dotenv from "dotenv";
 import cors from "cors";
+import cookieParser from "cookie-parser"; // Fix #2: was "cookies-parser" (wrong package) — req.cookies was always undefined
 import { connectDB } from "./config/db.js";
 import authRoutes from "./routes/auth.routes.js";
 import productRoutes from "./routes/product.routes.js";
 
-import cookies from "cookies-parser";
-
 dotenv.config();
 const app = express();
-app.use(cors({
-  origin: "http://localhost:3000",
-  credentials: true,
-}));
+
+app.use(
+  cors({
+    origin: process.env.Frontend_Url || "http://localhost:3000",
+    credentials: true,
+  })
+);
 app.use(express.urlencoded({ extended: true }));
-//it uses to extract the data from the body of the request and make it available in req.body as a json object
+// Parses incoming JSON request bodies and makes them available on req.body
 app.use(express.json());
+app.use(cookieParser()); // Fix #2: must be called as middleware — populates req.cookies
 
 connectDB();
+
 app.get("/", (req, res) => {
   res.send("Backend Working");
 });

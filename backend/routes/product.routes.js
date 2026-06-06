@@ -1,8 +1,10 @@
 import express from "express";
 import Product from "../model/product.model.js";
 import isAdmin from "../middleware/isadmin.js";
+
 const router = express.Router();
 
+// ─── Add Product ──────────────────────────────────────────────────────────────
 router.post("/add", isAdmin, async (req, res) => {
   const { name, description, imageUrl, mrp, stock, selling_price } = req.body;
   try {
@@ -22,12 +24,12 @@ router.post("/add", isAdmin, async (req, res) => {
   }
 });
 
+// ─── Fetch All Products ───────────────────────────────────────────────────────
+// Fix #18: was returning 404 on empty array — frontend's setProducts(data.products) crashed
+//          because data.products was undefined. Now always returns 200 with an array.
 router.get("/fetchdata", async (req, res) => {
   try {
     const products = await Product.find();
-    if (products.length < 1) {
-      return res.status(404).json({ message: "No products found" });
-    }
     res.json({ products, message: "Products fetched successfully" });
   } catch (error) {
     res
@@ -36,16 +38,20 @@ router.get("/fetchdata", async (req, res) => {
   }
 });
 
+// ─── Update Product ───────────────────────────────────────────────────────────
+// Fix #24: removed ghost `price` field — it doesn't exist in the Product schema
 router.put("/update_product/:id", isAdmin, async (req, res) => {
   const { id } = req.params;
-  const { name, description, price, imageUrl, mrp, stock, selling_price } =
-    req.body;
+  const { name, description, imageUrl, mrp, stock, selling_price } = req.body;
   try {
     const product = await Product.findByIdAndUpdate(
       id,
-      { name, description, price, imageUrl, mrp, stock, selling_price },
-      { new: true },
+      { name, description, imageUrl, mrp, stock, selling_price },
+      { new: true }
     );
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
     res.json({ product, message: "Product updated successfully" });
   } catch (error) {
     res
@@ -54,10 +60,14 @@ router.put("/update_product/:id", isAdmin, async (req, res) => {
   }
 });
 
+// ─── Delete Product ───────────────────────────────────────────────────────────
 router.delete("/delete_product/:id", isAdmin, async (req, res) => {
   const { id } = req.params;
   try {
-    await Product.findByIdAndDelete(id);
+    const product = await Product.findByIdAndDelete(id);
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
     res.json({ message: "Product deleted successfully" });
   } catch (error) {
     res
@@ -66,8 +76,12 @@ router.delete("/delete_product/:id", isAdmin, async (req, res) => {
   }
 });
 
+// ─── Search Products ──────────────────────────────────────────────────────────
 router.get("/search", async (req, res) => {
   const { query } = req.query;
+  if (!query || typeof query !== "string") {
+    return res.status(400).json({ message: "Search query is required" });
+  }
   try {
     const products = await Product.find({
       name: { $regex: query, $options: "i" }, // Case-insensitive search

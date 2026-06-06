@@ -3,12 +3,19 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { ShoppingCart, User } from "lucide-react";
 import { useAuth } from "@/app/context/AuthContext";
+import { useRouter } from "next/navigation";
 
 const Navbar = () => {
-  // const { user, logout } = useAuth();
-  // Replace with actual user state
-  const { user } = useAuth();
+  const { user, logout } = useAuth(); // Fix #20: now imports logout
   const [menuOpen, setMenuOpen] = useState(false);
+  const router = useRouter();
+
+  // Fix #20: logout handler — was missing entirely on mobile, and logout wasn't imported
+  const handleLogout = async () => {
+    await logout();
+    setMenuOpen(false);
+    router.push("/login");
+  };
 
   return (
     <nav className="bg-gray-800 text-white fixed top-0 left-0 right-0 z-50">
@@ -43,6 +50,12 @@ const Navbar = () => {
               >
                 <User />
               </Link>
+              <button
+                onClick={handleLogout}
+                className="px-3 py-2 hover:bg-gray-700 rounded text-sm"
+              >
+                Logout
+              </button>
             </div>
           ) : (
             <div className="flex items-center space-x-2">
@@ -93,12 +106,16 @@ const Navbar = () => {
             </Link>
             {user ? (
               <div className="border-t border-gray-700 pt-2">
-                <button className="px-3 py-2 hover:bg-gray-700 rounded">
+                {/* Fix #20: added onClick handler — was a dead button with no action */}
+                <button
+                  onClick={handleLogout}
+                  className="px-3 py-2 hover:bg-gray-700 rounded w-full"
+                >
                   Logout
                 </button>
                 <Link
                   href="/cart"
-                  className="px-3 py-2 hover:bg-gray-700 rounded mt-1 block  "
+                  className="px-3 py-2 hover:bg-gray-700 rounded mt-1 block"
                 >
                   <ShoppingCart className="w-full" />
                 </Link>

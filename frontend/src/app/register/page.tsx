@@ -3,16 +3,19 @@ import React, { useState } from "react";
 import { errorToast, successToast } from "@/app/utils/toast";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/context/AuthContext";
+import Link from "next/link";
 
 const Register = () => {
   const [name, setName] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false); // Fix #21: loading state prevents double submit
   const router = useRouter();
   const { setUser } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setLoading(true);
 
     try {
       const response = await fetch(
@@ -22,31 +25,36 @@ const Register = () => {
           headers: {
             "Content-Type": "application/json",
           },
+          credentials: "include", // Fix #15: was missing — cookie was never stored by browser
           body: JSON.stringify({
             name,
             email,
             password,
           }),
-        },
+        }
       );
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const data = await response.json();
         errorToast(data.message || "Registration failed. Please try again.");
         return;
       }
 
       successToast("Account created successfully");
-      setUser({ name, email, role: "user" }); // Set user with dummy ID and role
-      setTimeout(() => {
-        router.push("/");
-      }, 1000);
+      // Fix #14: correctly map API response fields — was setting hardcoded role
+      setUser({ name: data.name, email: data.email, role: data.role ?? "user" });
       setName("");
       setEmail("");
       setPassword("");
+      setTimeout(() => {
+        router.push("/");
+      }, 1000);
     } catch (error) {
       console.error("Error during registration:", error);
       errorToast("Unable to create account");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -78,7 +86,9 @@ const Register = () => {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Enter your full name"
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+              disabled={loading}
+              className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-60"
             />
           </div>
 
@@ -96,7 +106,9 @@ const Register = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter your email"
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+              disabled={loading}
+              className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-60"
             />
           </div>
 
@@ -113,27 +125,31 @@ const Register = () => {
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your password"
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Min. 8 characters"
+              required
+              minLength={8}
+              disabled={loading}
+              className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-60"
             />
           </div>
 
           <button
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium transition"
+            disabled={loading}
+            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition"
           >
-            Create Account
+            {loading ? "Creating account…" : "Create Account"}
           </button>
         </form>
 
         <p className="text-center text-sm text-gray-600 dark:text-gray-400 mt-6">
           Already have an account?{" "}
-          <a
+          <Link
             href="/login"
             className="text-blue-600 dark:text-blue-400 hover:underline"
           >
             Login
-          </a>
+          </Link>
         </p>
       </div>
     </div>

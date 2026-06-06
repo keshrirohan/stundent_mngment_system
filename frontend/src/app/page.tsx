@@ -1,9 +1,10 @@
 "use client";
 import React, { useEffect } from "react";
-import Navbar from "@/components/Navbar";
 import Image from "next/image";
 
-import { Toaster } from "react-hot-toast";
+// Fix #19: Removed duplicate <Toaster /> — already rendered in layout.tsx
+// Fix #19: Removed unused Navbar import — Navbar is rendered in layout.tsx
+
 type Product = {
   _id: string;
   imageUrl: string[];
@@ -17,15 +18,16 @@ type Product = {
 
 const Home = () => {
   const [products, setProducts] = React.useState<Product[]>([]);
+
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_URI}/products/fetchdata`,
+          `${process.env.NEXT_PUBLIC_BACKEND_URI}/products/fetchdata`
         );
         const data = await response.json();
-
-        setProducts(data.products);
+        // Fix #18: backend now always returns 200 with an array, but guard here too
+        setProducts(data.products ?? []);
       } catch (error) {
         console.error("Error fetching products:", error);
       }
@@ -50,17 +52,24 @@ const Home = () => {
             className="w-72 bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-300"
           >
             <div className="relative">
-              <Image
-                src={product.imageUrl[0]}
-                alt={product.name}
-                className="w-full h-56 object-cover"
-                width={288}
-                height={224}
-              />
+              {/* Fix #16: guard against empty imageUrl array — was crashing with imageUrl[0] on undefined */}
+              {product.imageUrl?.[0] ? (
+                <Image
+                  src={product.imageUrl[0]}
+                  alt={product.name}
+                  className="w-full h-56 object-cover"
+                  width={288}
+                  height={224}
+                />
+              ) : (
+                <div className="w-full h-56 bg-gray-200 flex items-center justify-center">
+                  <span className="text-gray-400 text-sm">No Image</span>
+                </div>
+              )}
 
               <span className="absolute top-3 left-3 bg-red-500 text-white text-xs font-semibold px-3 py-1 rounded-full">
                 {Math.round(
-                  ((product.mrp - product.selling_price) / product.mrp) * 100,
+                  ((product.mrp - product.selling_price) / product.mrp) * 100
                 )}
                 % OFF
               </span>
@@ -113,7 +122,7 @@ const Home = () => {
 
               <div className="flex gap-3 mt-5">
                 <button className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white py-2 rounded-lg font-medium">
-                  Add Cart
+                  Add to Cart
                 </button>
 
                 <button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-medium">
@@ -124,7 +133,6 @@ const Home = () => {
           </div>
         ))}
       </div>
-      <Toaster />
     </div>
   );
 };

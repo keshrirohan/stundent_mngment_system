@@ -8,10 +8,13 @@ import { useRouter } from "next/navigation";
 const LoginPage = () => {
   const { setUser } = useAuth();
   const [email, setEmail] = useState<string>("");
-  const router = useRouter();
   const [password, setPassword] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false); // Fix #21: loading state
+  const router = useRouter();
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setLoading(true);
     try {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URI}/auth/login`,
@@ -22,23 +25,24 @@ const LoginPage = () => {
           },
           credentials: "include",
           body: JSON.stringify({ email, password }),
-        },
+        }
       );
       const data = await response.json();
       if (response.ok) {
-        console.log("Login successful:", data);
-        setUser(data);
+        // Fix #14: correctly map API response fields — was setUser(data) which had wrong shape
+        setUser({ name: data.name, email: data.email, role: data.role ?? "user" });
         successToast("Login successful!");
         setTimeout(() => {
           router.push("/");
         }, 1000);
       } else {
-        // Handle login error, e.g., show error message
         errorToast(data.message || "Login failed. Please try again.");
       }
     } catch (error) {
       errorToast("An error occurred during login. Please try again.");
       console.error("Error during login:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -69,7 +73,9 @@ const LoginPage = () => {
               placeholder="Enter your email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+              disabled={loading}
+              className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-60"
             />
           </div>
 
@@ -81,13 +87,6 @@ const LoginPage = () => {
               >
                 Password
               </label>
-
-              <a
-                href="/forgot-password"
-                className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
-              >
-                Forgot Password?
-              </a>
             </div>
 
             <input
@@ -96,15 +95,18 @@ const LoginPage = () => {
               placeholder="Enter your password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+              disabled={loading}
+              className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-60"
             />
           </div>
 
           <button
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium transition"
+            disabled={loading}
+            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition"
           >
-            Login
+            {loading ? "Signing in…" : "Login"}
           </button>
         </form>
 

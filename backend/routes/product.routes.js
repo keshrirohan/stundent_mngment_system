@@ -77,14 +77,22 @@ router.delete("/delete_product/:id", isAdmin, async (req, res) => {
 });
 
 // ─── Search Products ──────────────────────────────────────────────────────────
+// GET /products/search?query=<term>
+// Performs a case-insensitive regex search on product names.
+// The frontend currently uses client-side filtering (no extra API calls),
+// but this route is available for future server-side or advanced search use.
 router.get("/search", async (req, res) => {
   const { query } = req.query;
+
+  // Return 400 if no query string was provided
   if (!query || typeof query !== "string") {
     return res.status(400).json({ message: "Search query is required" });
   }
+
   try {
+    // $options: "i" makes the regex case-insensitive
     const products = await Product.find({
-      name: { $regex: query, $options: "i" }, // Case-insensitive search
+      name: { $regex: query, $options: "i" },
     });
     res.json({ products, message: "Search completed successfully" });
   } catch (error) {

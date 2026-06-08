@@ -13,7 +13,7 @@ app.use(
   cors({
     origin: process.env.Frontend_Url || "http://localhost:3000",
     credentials: true,
-  })
+  }),
 );
 app.use(express.urlencoded({ extended: true }));
 // Parses incoming JSON request bodies and makes them available on req.body

@@ -25,16 +25,16 @@ const Navbar = () => {
     router.push("/login");
   };
 
-  const isActive = (href: string) => pathname === href;
+  const isActive = (href) => pathname === href;
 
-  const linkCls = (href: string) =>
+  const linkCls = (href) =>
     `px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150 ${
       isActive(href)
         ? "bg-zinc-700 text-white"
         : "text-zinc-400 hover:text-white hover:bg-zinc-800"
     }`;
 
-  const mobileLinkCls = (href: string) =>
+  const mobileLinkCls = (href) =>
     `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-150 ${
       isActive(href)
         ? "bg-zinc-800 text-white"
@@ -264,7 +264,7 @@ const Navbar = () => {
         </div>
       </nav>
 
-      {/* Overlay */}
+      {/* Overlay to close menu on outside click */}
       {menuOpen && (
         <div
           className="fixed inset-0 z-40 md:hidden"

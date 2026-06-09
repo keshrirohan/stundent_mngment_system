@@ -1,12 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
-
 import Card from "@/components/Card";
 
-// Fix #19: Removed duplicate <Toaster /> — already rendered in layout.tsx
-// Fix #19: Removed unused Navbar import — Navbar is rendered in layout.tsx
-
-// ─── Product type definition ──────────────────────────────────────────────────
 type Product = {
   _id: string;
   imageUrl: string[];
@@ -19,36 +14,27 @@ type Product = {
 };
 
 const Home = () => {
-  // All products fetched from the backend
   const [products, setProducts] = useState<Product[]>([]);
-
-  // Search query entered by the user
   const [searchQuery, setSearchQuery] = useState("");
 
-  // ─── Fetch all products on mount ───────────────────────────────────────────
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_URI}/products/fetchdata`,
+          `${process.env.NEXT_PUBLIC_BACKEND_URI}/products/fetchdata`
         );
         const data = await response.json();
-        // Fix #18: backend now always returns 200 with an array, but guard here too
         setProducts(data.products ?? []);
       } catch (error) {
         console.error("Error fetching products:", error);
       }
     };
-
     fetchProducts();
   }, []);
 
-  // ─── Client-side filtering ─────────────────────────────────────────────────
-  // Filter products by name or description based on the search query.
-  // This runs on every keystroke without any extra API calls.
   const filteredProducts = products.filter((product) => {
     const query = searchQuery.toLowerCase().trim();
-    if (!query) return true; // show all if search is empty
+    if (!query) return true;
     return (
       product.name.toLowerCase().includes(query) ||
       product.description.toLowerCase().includes(query)
@@ -56,43 +42,80 @@ const Home = () => {
   });
 
   return (
-    <div>
-      <h1 className="text-4xl font-bold text-center mt-10">
-        Welcome to the Store
-      </h1>
-      <p className="text-center mt-4 text-gray-600">
-        Discover our wide range of products and enjoy seamless shopping
-        experience.
-      </p>
+    <div className="min-h-screen pt-16" style={{ background: "#09090b" }}>
+      {/* Hero section */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-8 text-center">
+        <h1 className="text-4xl sm:text-5xl font-bold text-white tracking-tight">
+          Welcome to the Store
+        </h1>
+        <p className="mt-3 text-zinc-400 text-base sm:text-lg max-w-xl mx-auto">
+          Discover our wide range of products and enjoy a seamless shopping experience.
+        </p>
 
-      {/* ── Search Bar ─────────────────────────────────────────────────────── */}
-      <div className="flex justify-center mt-6 px-4">
-        <input
-          id="product-search"
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search products by name or description…"
-          className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-full shadow-sm
-                     focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800"
-          aria-label="Search products"
-        />
+        {/* Search */}
+        <div className="flex justify-center mt-8 px-4">
+          <div className="relative w-full max-w-md">
+            <svg
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input
+              id="product-search"
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search products…"
+              className="w-full pl-10 pr-4 py-3 rounded-xl text-sm text-white placeholder-zinc-500 outline-none transition-all"
+              style={{
+                background: "#18181b",
+                border: "1px solid rgba(255,255,255,0.08)",
+              }}
+              onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.2)")}
+              onBlur={(e) => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)")}
+              aria-label="Search products"
+            />
+          </div>
+        </div>
+
+        {/* Result count */}
+        {searchQuery && (
+          <p className="text-zinc-500 text-sm mt-3">
+            {filteredProducts.length === 0
+              ? "No products match your search."
+              : `${filteredProducts.length} result${filteredProducts.length !== 1 ? "s" : ""} for "${searchQuery}"`}
+          </p>
+        )}
       </div>
 
-      {/* ── Search result count hint ───────────────────────────────────────── */}
-      {searchQuery && (
-        <p className="text-center text-sm text-gray-500 mt-2">
-          {filteredProducts.length === 0
-            ? "No products match your search."
-            : `Showing ${filteredProducts.length} result${
-                filteredProducts.length !== 1 ? "s" : ""
-              } for "${searchQuery}"`}
-        </p>
-      )}
+      {/* Product grid */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+        <div className="flex flex-wrap justify-center gap-5">
+          <Card products={filteredProducts} />
+        </div>
 
-      {/* ── Product grid ──────────────────────────────────────────────────── */}
-      <div className="flex flex-wrap justify-center gap-6 p-6">
-        <Card products={filteredProducts} />
+        {/* Empty state */}
+        {filteredProducts.length === 0 && !searchQuery && (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <div
+              className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4"
+              style={{ background: "rgba(255,255,255,0.05)" }}
+            >
+              <svg className="w-7 h-7 text-zinc-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <path d="M16 10a4 4 0 0 1-8 0" />
+              </svg>
+            </div>
+            <p className="text-white font-semibold">No products available</p>
+            <p className="text-zinc-500 text-sm mt-1">Check back later for new arrivals.</p>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -9,7 +9,7 @@ const LoginPage = () => {
   const { setUser } = useAuth();
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(false); // Fix #21: loading state
+  const [loading, setLoading] = useState<boolean>(false);
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -20,21 +20,16 @@ const LoginPage = () => {
         `${process.env.NEXT_PUBLIC_BACKEND_URI}/auth/login`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           credentials: "include",
           body: JSON.stringify({ email, password }),
         }
       );
       const data = await response.json();
       if (response.ok) {
-        // Fix #14: correctly map API response fields — was setUser(data) which had wrong shape
         setUser({ name: data.name, email: data.email, role: data.role ?? "user" });
         successToast("Login successful!");
-        setTimeout(() => {
-          router.push("/");
-        }, 1000);
+        setTimeout(() => router.push("/"), 1000);
       } else {
         errorToast(data.message || "Login failed. Please try again.");
       }
@@ -47,86 +42,109 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-950 px-4 transition-colors">
-      <div className="w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-800 p-8">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white">
-            Welcome Back
-          </h1>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">
-            Sign in to continue to your account
-          </p>
+    <div
+      className="min-h-screen flex items-center justify-center px-4"
+      style={{ background: "#09090b" }}
+    >
+      {/* Card */}
+      <div
+        className="w-full max-w-md rounded-2xl p-8"
+        style={{ background: "#18181b", border: "1px solid rgba(255,255,255,0.08)" }}
+      >
+        {/* Logo mark */}
+        <div className="flex justify-center mb-6">
+          <div
+            className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-black text-lg"
+            style={{ background: "linear-gradient(135deg, #3f3f46, #71717a)" }}
+          >
+            E
+          </div>
         </div>
 
-        <form className="space-y-5" onSubmit={handleSubmit}>
+        <div className="text-center mb-8">
+          <h1 className="text-2xl font-bold text-white">Welcome back</h1>
+          <p className="mt-1.5 text-zinc-400 text-sm">Sign in to your account</p>
+        </div>
+
+        <form className="space-y-4" onSubmit={handleSubmit}>
+          {/* Email */}
           <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-            >
+            <label htmlFor="login-email" className="block text-sm font-medium text-zinc-300 mb-1.5">
               Email Address
             </label>
-
             <input
               type="email"
-              id="email"
-              placeholder="Enter your email"
+              id="login-email"
+              placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
               disabled={loading}
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-60"
+              className="w-full px-4 py-2.5 rounded-xl text-sm text-white placeholder-zinc-600 outline-none transition-all disabled:opacity-50"
+              style={{
+                background: "#09090b",
+                border: "1px solid rgba(255,255,255,0.1)",
+              }}
+              onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.25)")}
+              onBlur={(e) => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)")}
             />
           </div>
 
+          {/* Password */}
           <div>
-            <div className="flex justify-between items-center mb-2">
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-              >
-                Password
-              </label>
-            </div>
-
+            <label htmlFor="login-password" className="block text-sm font-medium text-zinc-300 mb-1.5">
+              Password
+            </label>
             <input
               type="password"
-              id="password"
+              id="login-password"
               placeholder="Enter your password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
               disabled={loading}
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-60"
+              className="w-full px-4 py-2.5 rounded-xl text-sm text-white placeholder-zinc-600 outline-none transition-all disabled:opacity-50"
+              style={{
+                background: "#09090b",
+                border: "1px solid rgba(255,255,255,0.1)",
+              }}
+              onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.25)")}
+              onBlur={(e) => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)")}
             />
           </div>
 
+          {/* Submit */}
           <button
+            id="login-submit-btn"
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition"
+            className="w-full py-2.5 rounded-xl text-sm font-semibold text-white transition-all duration-150 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+            style={{ background: "#27272a", border: "1px solid rgba(255,255,255,0.12)" }}
           >
-            {loading ? "Signing in…" : "Login"}
+            {loading ? (
+              <span className="flex items-center justify-center gap-2">
+                <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                </svg>
+                Signing in…
+              </span>
+            ) : "Login"}
           </button>
         </form>
 
+        {/* Divider */}
         <div className="relative my-6">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300 dark:border-gray-700"></div>
+            <div className="w-full" style={{ borderTop: "1px solid rgba(255,255,255,0.07)" }} />
           </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="bg-white dark:bg-gray-900 px-2 text-gray-500">
-              OR
-            </span>
+          <div className="relative flex justify-center text-xs">
+            <span className="px-3 text-zinc-600" style={{ background: "#18181b" }}>OR</span>
           </div>
         </div>
 
-        <p className="text-center text-sm text-gray-600 dark:text-gray-400 mt-6">
-          {`Don't have an account?`}{" "}
-          <Link
-            href="/register"
-            className="text-blue-600 dark:text-blue-400 hover:underline"
-          >
+        <p className="text-center text-sm text-zinc-500">
+          Don&apos;t have an account?{" "}
+          <Link href="/register" className="text-zinc-300 hover:text-white font-medium hover:underline transition-colors">
             Sign Up
           </Link>
         </p>

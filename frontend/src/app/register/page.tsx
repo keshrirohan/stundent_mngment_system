@@ -9,47 +9,32 @@ const Register = () => {
   const [name, setName] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(false); // Fix #21: loading state prevents double submit
+  const [loading, setLoading] = useState<boolean>(false);
   const router = useRouter();
   const { setUser } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
-
     try {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URI}/auth/register`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include", // Fix #15: was missing — cookie was never stored by browser
-          body: JSON.stringify({
-            name,
-            email,
-            password,
-          }),
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ name, email, password }),
         }
       );
-
       const data = await response.json();
-
       if (!response.ok) {
         errorToast(data.message || "Registration failed. Please try again.");
         return;
       }
-
       successToast("Account created successfully");
-      // Fix #14: correctly map API response fields — was setting hardcoded role
       setUser({ name: data.name, email: data.email, role: data.role ?? "user" });
-      setName("");
-      setEmail("");
-      setPassword("");
-      setTimeout(() => {
-        router.push("/");
-      }, 1000);
+      setName(""); setEmail(""); setPassword("");
+      setTimeout(() => router.push("/"), 1000);
     } catch (error) {
       console.error("Error during registration:", error);
       errorToast("Unable to create account");
@@ -58,96 +43,135 @@ const Register = () => {
     }
   };
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-950 px-4 transition-colors">
-      <div className="w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-800 p-8">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white">
-            Create an Account
-          </h1>
+  const inputStyle = {
+    background: "#09090b",
+    border: "1px solid rgba(255,255,255,0.1)",
+  };
 
-          <p className="mt-2 text-gray-600 dark:text-gray-400">
-            Sign up to get started with your new account
-          </p>
+  const handleFocus = (e: React.FocusEvent<HTMLInputElement>) =>
+    (e.currentTarget.style.borderColor = "rgba(255,255,255,0.25)");
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) =>
+    (e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)");
+
+  return (
+    <div
+      className="min-h-screen flex items-center justify-center px-4"
+      style={{ background: "#09090b" }}
+    >
+      {/* Card */}
+      <div
+        className="w-full max-w-md rounded-2xl p-8"
+        style={{ background: "#18181b", border: "1px solid rgba(255,255,255,0.08)" }}
+      >
+        {/* Logo mark */}
+        <div className="flex justify-center mb-6">
+          <div
+            className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-black text-lg"
+            style={{ background: "linear-gradient(135deg, #3f3f46, #71717a)" }}
+          >
+            E
+          </div>
         </div>
 
-        <form className="space-y-5" onSubmit={handleSubmit}>
+        <div className="text-center mb-8">
+          <h1 className="text-2xl font-bold text-white">Create an account</h1>
+          <p className="mt-1.5 text-zinc-400 text-sm">Sign up to get started</p>
+        </div>
+
+        <form className="space-y-4" onSubmit={handleSubmit}>
+          {/* Name */}
           <div>
-            <label
-              htmlFor="name"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-            >
+            <label htmlFor="register-name" className="block text-sm font-medium text-zinc-300 mb-1.5">
               Full Name
             </label>
-
             <input
               type="text"
-              id="name"
+              id="register-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Enter your full name"
+              placeholder="John Doe"
               required
               disabled={loading}
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-60"
+              className="w-full px-4 py-2.5 rounded-xl text-sm text-white placeholder-zinc-600 outline-none transition-all disabled:opacity-50"
+              style={inputStyle}
+              onFocus={handleFocus}
+              onBlur={handleBlur}
             />
           </div>
 
+          {/* Email */}
           <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-            >
+            <label htmlFor="register-email" className="block text-sm font-medium text-zinc-300 mb-1.5">
               Email Address
             </label>
-
             <input
               type="email"
-              id="email"
+              id="register-email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
+              placeholder="you@example.com"
               required
               disabled={loading}
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-60"
+              className="w-full px-4 py-2.5 rounded-xl text-sm text-white placeholder-zinc-600 outline-none transition-all disabled:opacity-50"
+              style={inputStyle}
+              onFocus={handleFocus}
+              onBlur={handleBlur}
             />
           </div>
 
+          {/* Password */}
           <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-            >
+            <label htmlFor="register-password" className="block text-sm font-medium text-zinc-300 mb-1.5">
               Password
             </label>
-
             <input
               type="password"
-              id="password"
+              id="register-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Min. 8 characters"
               required
               minLength={8}
               disabled={loading}
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-60"
+              className="w-full px-4 py-2.5 rounded-xl text-sm text-white placeholder-zinc-600 outline-none transition-all disabled:opacity-50"
+              style={inputStyle}
+              onFocus={handleFocus}
+              onBlur={handleBlur}
             />
           </div>
 
+          {/* Submit */}
           <button
+            id="register-submit-btn"
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition"
+            className="w-full py-2.5 rounded-xl text-sm font-semibold text-white transition-all duration-150 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+            style={{ background: "#27272a", border: "1px solid rgba(255,255,255,0.12)" }}
           >
-            {loading ? "Creating account…" : "Create Account"}
+            {loading ? (
+              <span className="flex items-center justify-center gap-2">
+                <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                </svg>
+                Creating account…
+              </span>
+            ) : "Create Account"}
           </button>
         </form>
 
-        <p className="text-center text-sm text-gray-600 dark:text-gray-400 mt-6">
+        {/* Divider */}
+        <div className="relative my-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full" style={{ borderTop: "1px solid rgba(255,255,255,0.07)" }} />
+          </div>
+          <div className="relative flex justify-center text-xs">
+            <span className="px-3 text-zinc-600" style={{ background: "#18181b" }}>OR</span>
+          </div>
+        </div>
+
+        <p className="text-center text-sm text-zinc-500">
           Already have an account?{" "}
-          <Link
-            href="/login"
-            className="text-blue-600 dark:text-blue-400 hover:underline"
-          >
+          <Link href="/login" className="text-zinc-300 hover:text-white font-medium hover:underline transition-colors">
             Login
           </Link>
         </p>

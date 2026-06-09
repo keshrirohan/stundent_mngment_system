@@ -1,5 +1,6 @@
 import express from "express";
 import User from "../model/user.model.js";
+import Order from "../model/order.model.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 
@@ -164,4 +165,24 @@ router.post("/logout", (req, res) => {
   res.json({ message: "User logged out successfully" });
 });
 
+// ─── My Orders ────────────────────────────────────────────────────────────────
+// Returns all orders belonging to the authenticated user, with product details populated.
+router.get("/my-orders", async (req, res) => {
+  const token = req.cookies?.token || req.headers.authorization?.split(" ")[1];
+  if (!token) return res.status(401).json({ message: "No token provided" });
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const orders = await Order.find({ user: decoded.id }).populate(
+      "products.product",
+      "name imageUrl selling_price mrp"
+    );
+    res.json({ orders, message: "Orders fetched successfully" });
+  } catch (error) {
+    console.error("Fetch orders error:", error);
+    res.status(401).json({ message: "Invalid token" });
+  }
+});
+
 export default router;
+

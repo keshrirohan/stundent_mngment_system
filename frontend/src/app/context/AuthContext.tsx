@@ -13,7 +13,6 @@ interface User {
   name: string;
   email: string;
   role: string;
-  id: string;
 }
 
 // Auth context to manage user authentication state across the app
@@ -35,12 +34,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         );
         if (res.ok) {
           const data = await res.json();
-          console.log("Session restored for user:", data);
+
           setUser({
             name: data.name,
             email: data.email,
             role: data.role ?? "user",
-            id: data._id || "id-not-provided",
           });
         }
       } catch {

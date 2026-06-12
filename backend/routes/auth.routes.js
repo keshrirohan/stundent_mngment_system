@@ -18,13 +18,17 @@ router.post("/register", async (req, res) => {
     return res.status(400).json({ message: "All fields are required" });
   }
   if (typeof name !== "string" || name.trim().length < 2) {
-    return res.status(400).json({ message: "Name must be at least 2 characters" });
+    return res
+      .status(400)
+      .json({ message: "Name must be at least 2 characters" });
   }
   if (!validateEmail(email)) {
     return res.status(400).json({ message: "Invalid email format" });
   }
   if (typeof password !== "string" || password.length < 8) {
-    return res.status(400).json({ message: "Password must be at least 8 characters" });
+    return res
+      .status(400)
+      .json({ message: "Password must be at least 8 characters" });
   }
 
   try {
@@ -36,14 +40,18 @@ router.post("/register", async (req, res) => {
     // Fix #9: was bcrypt.hashSync (sync, blocks event loop) — now async
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    const user = await User.create({ name: name.trim(), email, password: hashedPassword });
+    const user = await User.create({
+      name: name.trim(),
+      email,
+      password: hashedPassword,
+    });
 
     // Fix #10: JWT payload now includes id and role (was missing both)
     // Fix: removed incorrect `await` — jwt.sign() is synchronous
     const token = jwt.sign(
       { id: user._id, email: user.email, name: user.name, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: "1h" }
+      { expiresIn: "1h" },
     );
 
     // Fix #13: secure is now env-conditional — was always true, broke local dev over HTTP
@@ -108,7 +116,7 @@ router.post("/login", async (req, res) => {
     const token = jwt.sign(
       { id: user._id, email: user.email, name: user.name, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: "1h" }
+      { expiresIn: "1h" },
     );
 
     // Fix #13: secure is now env-conditional
@@ -137,7 +145,7 @@ router.post("/login", async (req, res) => {
 // ─── Profile ──────────────────────────────────────────────────────────────────
 router.get("/me", async (req, res) => {
   const token = req.cookies?.token || req.headers.authorization?.split(" ")[1];
-  
+
   if (!token) {
     return res.status(401).json({ message: "No token provided" });
   }
@@ -148,7 +156,12 @@ router.get("/me", async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
     // Now includes role — required for AuthContext session hydration
-    res.json({ id: user._id, name: user.name, email: user.email, role: user.role });
+    res.json({
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    });
   } catch (error) {
     res.status(401).json({ message: "Invalid token" });
   }
@@ -167,22 +180,6 @@ router.post("/logout", (req, res) => {
 
 // ─── My Orders ────────────────────────────────────────────────────────────────
 // Returns all orders belonging to the authenticated user, with product details populated.
-router.get("/my-orders", async (req, res) => {
-  const token = req.cookies?.token || req.headers.authorization?.split(" ")[1];
-  if (!token) return res.status(401).json({ message: "No token provided" });
 
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const orders = await Order.find({ user: decoded.id }).populate(
-      "products.product",
-      "name imageUrl selling_price mrp"
-    );
-    res.json({ orders, message: "Orders fetched successfully" });
-  } catch (error) {
-    console.error("Fetch orders error:", error);
-    res.status(401).json({ message: "Invalid token" });
-  }
-});
 
 export default router;
-

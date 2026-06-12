@@ -38,7 +38,7 @@ const userSchema = new mongoose.Schema({
       default: [],
     },
   ],
-  cart: [
+  carts: [
     {
       product: {
         type: mongoose.Schema.Types.ObjectId,

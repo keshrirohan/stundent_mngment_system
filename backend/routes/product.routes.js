@@ -47,7 +47,7 @@ router.put("/update_product/:id", isAdmin, async (req, res) => {
     const product = await Product.findByIdAndUpdate(
       id,
       { name, description, imageUrl, mrp, stock, selling_price },
-      { new: true }
+      { new: true },
     );
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
@@ -101,5 +101,6 @@ router.get("/search", async (req, res) => {
       .json({ message: "Failed to search products", error: error.message });
   }
 });
+
 
 export default router;

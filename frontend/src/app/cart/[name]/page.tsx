@@ -8,9 +8,19 @@ const Cart = () => {
   useEffect(() => {
     // Fetch cart items from API or local storage
     const fetchCartItems = async () => {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URI}/carts`,
+      );
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Cart items:", data);
+      } else {
+        console.error("Failed to fetch cart items");
+      }
       if (!user) return; // Ensure user is available before fetching cart items
       console.log("Fetching cart items for user:", user);
     };
+
     fetchCartItems();
   }, [user]);
 

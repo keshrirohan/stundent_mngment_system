@@ -1,11 +1,18 @@
 import express from "express";
+import User from "../models/User.js";
 
 const router = express.Router();
 
-router.get("/:id/cart", async (req, res) => {
-  const userId = req.params.id;
-  const user = await User.findById(userId).populate("cart.product"); // Populate product details in the cart
-  res.json(user.cart);
+router.get("/cart", async (req, res) => {
+  try {
+    const token = req.cookies.token || req.headers.authorization?.split(" ")[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id).populate("carts");
+    console.log("User's cart:", user); // Debugging log to verify cart contents
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 });
 
 export default router;

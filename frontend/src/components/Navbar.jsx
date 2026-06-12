@@ -18,7 +18,10 @@ const Navbar = () => {
   }, []);
 
   useEffect(() => {
-    setMenuOpen(false);
+    const handleRouteChange = () => {
+      setMenuOpen(false);
+    };
+    handleRouteChange();
   }, [pathname]);
 
   const handleLogout = async () => {
@@ -86,8 +89,8 @@ const Navbar = () => {
               {user ? (
                 <>
                   <Link
-                    href="/cart"
-                    className={linkCls("/cart")}
+                    href={`/cart/${user?.name}`}
+                    className={linkCls(`/cart/${user?.name}`)}
                     id="nav-cart"
                     aria-label="Cart"
                   >
@@ -293,8 +296,8 @@ const Navbar = () => {
                   </Link>
 
                   <Link
-                    href="/cart"
-                    className={mobileLinkCls("/cart")}
+                    href={`/cart/${user?.name}`}
+                    className={mobileLinkCls(`/cart/${user?.name}`)}
                     id="mobile-cart"
                   >
                     <svg

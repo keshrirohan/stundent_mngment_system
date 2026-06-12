@@ -13,10 +13,13 @@ interface User {
   name: string;
   email: string;
   role: string;
+  id: string;
 }
 
 // Auth context to manage user authentication state across the app
-export const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(
+  undefined,
+);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -27,15 +30,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const restoreSession = async () => {
       try {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_URI}/auth/profile`,
-          { credentials: "include" } // sends the httpOnly cookie to the backend
+          `${process.env.NEXT_PUBLIC_BACKEND_URI}/auth/me`,
+          { credentials: "include" }, // sends the httpOnly cookie to the backend
         );
         if (res.ok) {
           const data = await res.json();
+          console.log("Session restored for user:", data);
           setUser({
             name: data.name,
             email: data.email,
             role: data.role ?? "user",
+            id: data._id || "id-not-provided",
           });
         }
       } catch {

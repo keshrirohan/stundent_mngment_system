@@ -15,6 +15,7 @@ type Product = {
 
 const Home = () => {
   const [products, setProducts] = useState<Product[]>([]);
+  const [likedProductIds, setLikedProductIds] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
@@ -23,13 +24,32 @@ const Home = () => {
         const response = await fetch(
           `${process.env.NEXT_PUBLIC_BACKEND_URI}/products/fetchdata`
         );
+        if (!response.ok) return;
         const data = await response.json();
         setProducts(data.products ?? []);
       } catch (error) {
         console.error("Error fetching products:", error);
       }
     };
-    fetchProducts();
+
+    const fetchLikedIds = async () => {
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URI}/liked`,
+          { credentials: "include" }
+        );
+        if (!response.ok) return; // not logged in or error — just skip
+        const data = await response.json();
+        // Extract only IDs from the populated likedProducts array
+        const ids = (data.likedProducts ?? []).map((p: Product) => p._id);
+        setLikedProductIds(ids);
+      } catch (error) {
+        // User not logged in — silently ignore
+      }
+    };
+
+    // Fetch both in parallel
+    Promise.all([fetchProducts(), fetchLikedIds()]);
   }, []);
 
   const filteredProducts = products.filter((product) => {
@@ -49,7 +69,8 @@ const Home = () => {
           Welcome to the Store
         </h1>
         <p className="mt-3 text-zinc-400 text-base sm:text-lg max-w-xl mx-auto">
-          Discover our wide range of products and enjoy a seamless shopping experience.
+          Discover our wide range of products and enjoy a seamless shopping
+          experience.
         </p>
 
         {/* Search */}
@@ -76,8 +97,12 @@ const Home = () => {
                 background: "#18181b",
                 border: "1px solid rgba(255,255,255,0.08)",
               }}
-              onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.2)")}
-              onBlur={(e) => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)")}
+              onFocus={(e) =>
+                (e.currentTarget.style.borderColor = "rgba(255,255,255,0.2)")
+              }
+              onBlur={(e) =>
+                (e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)")
+              }
               aria-label="Search products"
             />
           </div>
@@ -96,7 +121,7 @@ const Home = () => {
       {/* Product grid */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
         <div className="flex flex-wrap justify-center gap-5">
-          <Card products={filteredProducts} />
+          <Card products={filteredProducts} likedProductIds={likedProductIds} />
         </div>
 
         {/* Empty state */}
@@ -106,14 +131,22 @@ const Home = () => {
               className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4"
               style={{ background: "rgba(255,255,255,0.05)" }}
             >
-              <svg className="w-7 h-7 text-zinc-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <svg
+                className="w-7 h-7 text-zinc-500"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+              >
                 <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
                 <line x1="3" y1="6" x2="21" y2="6" />
                 <path d="M16 10a4 4 0 0 1-8 0" />
               </svg>
             </div>
             <p className="text-white font-semibold">No products available</p>
-            <p className="text-zinc-500 text-sm mt-1">Check back later for new arrivals.</p>
+            <p className="text-zinc-500 text-sm mt-1">
+              Check back later for new arrivals.
+            </p>
           </div>
         )}
       </div>

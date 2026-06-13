@@ -6,6 +6,7 @@ import { connectDB } from "./config/db.js";
 import authRoutes from "./routes/auth.routes.js";
 import productRoutes from "./routes/product.routes.js";
 import cartRoutes from "./routes/cart.routes.js";
+import likedRoutes from "./routes/liked.routes.js"; // Fix #12: was missing route for liked products, now added to auth routes
 
 dotenv.config();
 const app = express();

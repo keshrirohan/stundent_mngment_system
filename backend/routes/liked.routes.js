@@ -1,50 +1,80 @@
 import express from "express";
 import User from "../model/user.model.js";
-import jwt from "jsonwebtoken";
 import tokenVerification from "../middleware/tokenVerification.js";
 
 const router = express.Router();
 
-router.get("/liked", tokenVerification, async (req, res) => {
-  const decoded = req.user; // tokenVerification middleware attaches decoded token to req.user
+/*
+GET USER WISHLIST
+*/
+router.get("/", tokenVerification, async (req, res) => {
   try {
-    const user = await User.findById(decoded.id).populate(
+    const user = await User.findById(req.user.id).populate(
       "likedProducts",
-      "name imageUrl selling_price mrp",
+      "name description imageUrl selling_price mrp isInStock reviews",
     );
+
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({
+        message: "User not found",
+      });
     }
-    res.json({
+
+    return res.status(200).json({
       likedProducts: user.likedProducts,
-      message: "Liked products fetched successfully",
     });
   } catch (error) {
-    res.status(401).json({ message: "Invalid token" });
+    console.log(error);
+    return res.status(500).json({
+      message: "Server Error",
+    });
   }
 });
 
-router.post("/liked/:productId", tokenVerification, async (req, res) => {
-  const decoded = req.user; // tokenVerification middleware attaches decoded token to req.user
-  const { productId } = req.params;
+/*
+LIKE / UNLIKE PRODUCT
+*/
+router.post("/:productId", tokenVerification, async (req, res) => {
   try {
-    const user = await User.findById(decoded.id);
+    const { productId } = req.params;
+
+    const user = await User.findById(req.user.id);
+
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({
+        message: "User not found",
+      });
     }
-    // Toggle like: if already liked, remove it; otherwise, add it
-    const index = user.likedProducts.indexOf(productId);
-    if (index > -1) {
-      user.likedProducts.splice(index, 1); // Remove product from likedProducts
+
+    const exists = user.likedProducts.some((id) => id.toString() === productId);
+    if (exists) {
+      // If the product is already liked, remove it from the likedProducts array
+      user.likedProducts = user.likedProducts.filter(
+        (id) => id.toString() !== productId,
+      );
+
       await user.save();
-      return res.json({ message: "Product unliked successfully" });
-    } else {
-      user.likedProducts.push(productId); // Add product to likedProducts
-      await user.save();
-      return res.json({ message: "Product liked successfully" });
+
+      return res.status(200).json({
+        liked: false,
+        message: "Removed from wishlist",
+      });
     }
+
+    user.likedProducts.push(productId);
+
+    await user.save();
+
+    return res.status(200).json({
+      liked: true,
+      message: "Added to wishlist",
+    });
   } catch (error) {
-    res.status(401).json({ message: "Invalid token" });
+    console.log(error);
+
+    return res.status(500).json({
+      message: "Server Error",
+    });
   }
 });
 

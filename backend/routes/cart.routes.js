@@ -1,15 +1,15 @@
 import express from "express";
-import User from "../models/User.js";
+import User from "../model/user.model.js";
+import verifyToken from "../middleware/tokenVerification.js";
 
 const router = express.Router();
 
-router.get("/cart", async (req, res) => {
+router.get("/cart", verifyToken, async (req, res) => {
   try {
-    const token = req.cookies.token || req.headers.authorization?.split(" ")[1];
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.id).populate("carts");
-    console.log("User's cart:", user); // Debugging log to verify cart contents
-    res.json(user);
+    const decoded = req.user; // Assuming verifyToken middleware sets req.user with the decoded token
+    const userCart = await User.findById(decoded.id).populate("carts");
+    console.log("User's cart:", userCart); // Debugging log to verify cart contents
+    res.json(userCart || { carts: [] }); // Return user data with carts, or an empty array if user not found
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

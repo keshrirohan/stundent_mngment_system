@@ -24,7 +24,7 @@ const userSchema = new mongoose.Schema({
     default: "user",
   },
 
-  wishList: [
+  likedProducts: [
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Product",
